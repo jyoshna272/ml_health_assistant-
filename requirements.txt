@@ -2,5 +2,7 @@ streamlit
 pandas
 numpy
 scikit-learn
-tensorflow-cpu
+keras
+tensorflow
 pillow
+protobuf==3.20.3
