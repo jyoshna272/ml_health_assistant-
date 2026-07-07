@@ -2,7 +2,4 @@ streamlit
 pandas
 numpy
 scikit-learn
-keras
-tensorflow
 pillow
-protobuf==3.20.3

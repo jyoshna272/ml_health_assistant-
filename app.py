@@ -4,7 +4,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-import tensorflow as tf
 from PIL import Image
 
 # Page config
@@ -202,10 +201,7 @@ def load_crop_model():
     model.fit(X_train, y_train)
     return model, scaler, le
 
-@st.cache_resource
-def load_plant_model():
-    model = tf.keras.models.load_model("plant_disease_model.keras")
-    return model
+
 
 # ============================================
 # Sidebar Navigation
@@ -485,55 +481,15 @@ elif page == "🌾 Crop Recommender":
 # ============================================
 
 elif page == "🌿 Plant Disease Detector":
-    st.markdown("<h1 style='color: #a78bfa; text-align: center;'>🌿 Plant Disease Detector</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #ffffff;'>Upload a leaf image to detect diseases:</p>", unsafe_allow_html=True)
+    st.title("🌿 Plant Disease Detector")
     st.markdown("---")
-
-    classes = {0: "Healthy", 1: "Powdery Mildew", 2: "Rust"}
-
-    uploaded_file = st.file_uploader(
-        "Choose a leaf image...",
-        type=["jpg", "jpeg", "png"]
-    )
-
-    if uploaded_file is not None:
-        img = Image.open(uploaded_file)
-        st.image(img, caption="Uploaded Leaf", width=300)
-
-        if st.button("🔍 Detect Disease", use_container_width=True):
-            plant_model = load_plant_model()
-
-            img_resized = img.resize((128, 128))
-            img_array = np.array(img_resized) / 255.0
-            img_array = np.expand_dims(img_array, axis=0)
-
-            predictions = plant_model.predict(img_array, verbose=0)
-            predicted_class = np.argmax(predictions[0])
-            confidence = predictions[0][predicted_class] * 100
-            disease_name = classes[predicted_class]
-
-            st.markdown("---")
-            if disease_name == "Healthy":
-                st.success(f"✅ HEALTHY PLANT! ({confidence:.1f}% confident)")
-                st.markdown("### 💚 Your plant looks great!")
-                st.markdown("- Continue your current care routine")
-                st.markdown("- Water regularly and ensure good sunlight")
-            elif disease_name == "Powdery Mildew":
-                st.warning(f"⚠️ POWDERY MILDEW DETECTED! ({confidence:.1f}% confident)")
-                st.markdown("### 💊 Treatment:")
-                st.markdown("- Spray with fungicide immediately")
-                st.markdown("- Improve air circulation around plant")
-                st.markdown("- Avoid overhead watering")
-            else:
-                st.error(f"🔴 RUST DISEASE DETECTED! ({confidence:.1f}% confident)")
-                st.markdown("### 💊 Treatment:")
-                st.markdown("- Remove and destroy infected leaves")
-                st.markdown("- Apply copper-based fungicide")
-                st.markdown("- Keep leaves dry when watering")
-
-            st.markdown("### 📊 Disease Probabilities")
-            prob_df = pd.DataFrame({
-                "Disease": list(classes.values()),
-                "Confidence %": [p*100 for p in predictions[0]]
-            })
-            st.bar_chart(prob_df.set_index("Disease"))
+    st.info("""
+    🚧 **Coming Soon!**
+    
+    The Plant Disease Detector is being upgraded 
+    and will be available soon!
+    
+    Currently available tools:
+    - ❤️ Heart Disease Checker
+    - 🌾 Crop Recommender
+    """)
