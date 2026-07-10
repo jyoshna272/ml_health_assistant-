@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from PIL import Image
+import tensorflow as tf
 
 # Page config
 st.set_page_config(
@@ -200,9 +201,19 @@ def load_crop_model():
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     return model, scaler, le
+    X_train = scaler.fit_transform(X_train)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    return model, scaler, le
 
+@st.cache_resource
+def load_plant_model():
+    model = tf.keras.models.load_model("plant_disease_model.keras")
+    return model
 
-
+# ============================================
+# Sidebar Navigation
+# ============================================
 # ============================================
 # Sidebar Navigation
 # ============================================
@@ -348,7 +359,7 @@ elif page == "❤️ Heart Disease Checker":
 
     st.markdown("---")
 
-    if st.button("🔍 Check Heart Disease Risk", use_container_width=True):
+    if st.button(" Check Heart Disease Risk", use_container_width=True):
         model, scaler = load_heart_model()
 
         # Calculate healthy thalach based on age
@@ -399,13 +410,13 @@ elif page == "❤️ Heart Disease Checker":
         st.markdown("---")
         if prediction == 1:
             st.error(f"⚠️ HIGH RISK — Heart Disease Detected! ({confidence:.1f}% confident)")
-            st.markdown("### 💊 Recommendations:")
+            st.markdown("###  Recommendations:")
             st.markdown("- Schedule an appointment with your doctor immediately")
             st.markdown("- Reduce sodium and saturated fat intake")
             st.markdown("- Start light exercise like walking 30 mins daily")
         else:
             st.success(f"✅ LOW RISK — No Heart Disease Detected! ({confidence:.1f}% confident)")
-            st.markdown("### 💪 Keep it up!")
+            st.markdown("###  Keep it up!")
             st.markdown("- Maintain your healthy lifestyle")
             st.markdown("- Exercise regularly")
             st.markdown("- Get annual checkups")
@@ -463,7 +474,7 @@ elif page == "🌾 Crop Recommender":
         top3_probs = probability[top3_idx]
 
         st.markdown("---")
-        st.success(f"🏆 BEST CROP TO GROW: **{predicted_crop.upper()}**!")
+        st.success(f" BEST CROP TO GROW: **{predicted_crop.upper()}**!")
 
         st.markdown("### 📊 Top 3 Recommendations")
         medals = ["🥇", "🥈", "🥉"]
@@ -481,15 +492,74 @@ elif page == "🌾 Crop Recommender":
 # ============================================
 
 elif page == "🌿 Plant Disease Detector":
-    st.title("🌿 Plant Disease Detector")
+    st.markdown("<h1 style='color: #a78bfa; text-align: center;'>🌿 Plant Disease Detector</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #ffffff;'>Upload a leaf image to detect diseases:</p>", unsafe_allow_html=True)
     st.markdown("---")
-    st.info("""
-    🚧 **Coming Soon!**
-    
-    The Plant Disease Detector is being upgraded 
-    and will be available soon!
-    
-    Currently available tools:
-    - ❤️ Heart Disease Checker
-    - 🌾 Crop Recommender
-    """)
+
+    classes = {0: "Healthy", 1: "Powdery Mildew", 2: "Rust"}
+
+    st.markdown("""
+    <div style='
+        background: white;
+        border-radius: 12px;
+        padding: 5px;
+        border: 2px dashed #7c3aed;
+        margin-bottom: 10px;
+    '>
+        <p style='color:black !important; 
+                  text-align:center; 
+                  font-weight:600;
+                  font-size:16px;
+                  margin:0;'>
+            📁 Upload your leaf image below
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    uploaded_file = st.file_uploader(
+        "Choose a leaf image",
+        type=["jpg", "jpeg", "png"],
+        label_visibility="collapsed"
+    )
+
+    if uploaded_file is not None:
+        img = Image.open(uploaded_file)
+        st.image(img, caption="Uploaded Leaf", width=300)
+
+        if st.button(" Detect Disease", use_container_width=True):
+            plant_model = load_plant_model()
+
+            img_resized = img.resize((128, 128))
+            img_array = np.array(img_resized) / 255.0
+            img_array = np.expand_dims(img_array, axis=0)
+
+            predictions = plant_model.predict(img_array, verbose=0)
+            predicted_class = np.argmax(predictions[0])
+            confidence = predictions[0][predicted_class] * 100
+            disease_name = classes[predicted_class]
+
+            st.markdown("---")
+            if disease_name == "Healthy":
+                st.success(f" HEALTHY PLANT! ({confidence:.1f}% confident)")
+                st.markdown("### 💚 Your plant looks great!")
+                st.markdown("- Continue your current care routine")
+                st.markdown("- Water regularly and ensure good sunlight")
+            elif disease_name == "Powdery Mildew":
+                st.warning(f"⚠️ POWDERY MILDEW DETECTED! ({confidence:.1f}% confident)")
+                st.markdown("###  Treatment:")
+                st.markdown("- Spray with fungicide immediately")
+                st.markdown("- Improve air circulation around plant")
+                st.markdown("- Avoid overhead watering")
+            else:
+                st.error(f"🔴 RUST DISEASE DETECTED! ({confidence:.1f}% confident)")
+                st.markdown("###  Treatment:")
+                st.markdown("- Remove and destroy infected leaves")
+                st.markdown("- Apply copper-based fungicide")
+                st.markdown("- Keep leaves dry when watering")
+
+            st.markdown("### 📊 Disease Probabilities")
+            prob_df = pd.DataFrame({
+                "Disease": list(classes.values()),
+                "Confidence %": [p*100 for p in predictions[0]]
+            })
+            st.bar_chart(prob_df.set_index("Disease"))
