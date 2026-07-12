@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from PIL import Image
-import tensorflow as tf
+import onnxruntime as ort
 
 # Page config
 st.set_page_config(
@@ -208,9 +208,8 @@ def load_crop_model():
 
 @st.cache_resource
 def load_plant_model():
-    model = tf.keras.models.load_model("plant_disease_model.keras")
-    return model
-
+    session = ort.InferenceSession("plant_disease_model.onnx")
+    return session
 # ============================================
 # Sidebar Navigation
 # ============================================
@@ -533,7 +532,10 @@ elif page == "🌿 Plant Disease Detector":
             img_array = np.array(img_resized) / 255.0
             img_array = np.expand_dims(img_array, axis=0)
 
-            predictions = plant_model.predict(img_array, verbose=0)
+            input_name = plant_model.get_inputs()[0].name
+            predictions = plant_model.run(
+                None, {input_name: img_array.astype(np.float32)}
+            )[0]
             predicted_class = np.argmax(predictions[0])
             confidence = predictions[0][predicted_class] * 100
             disease_name = classes[predicted_class]
