@@ -96,22 +96,36 @@ st.markdown("""
 
     /* File uploader */
     [data-testid="stFileUploader"] {
-        background: #2d2d4e;
-        border-radius: 12px;
-        padding: 15px;
-        border: 2px dashed #7c3aed;
+        background: #2d2060;
+        border-radius: 14px;
+        padding: 20px;
+        border: 2px dashed #a78bfa;
     }
 
     [data-testid="stFileUploader"] * {
-        color: #2d2d4e!important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stFileUploader"] small {
+        color: #c4b5fd !important;
+        font-size: 13px !important;
     }
 
     [data-testid="stFileUploader"] button {
         background: #7c3aed !important;
-        color: white !important;
+        color: #ffffff !important;
         border-radius: 8px !important;
+        font-weight: 700 !important;
     }
 
+    [data-testid="stFileUploader"] button * {
+        color: #ffffff !important;
+    }
+
+    [data-testid="stFileUploader"] svg {
+        fill: #a78bfa !important;
+    }
     /* Select box */
     .stSelectbox label {
         color: #ffffff !important;
